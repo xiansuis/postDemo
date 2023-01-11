@@ -1,19 +1,17 @@
 package com.example.demo;
 
 import lombok.extern.slf4j.Slf4j;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+
+import java.io.*;
 import java.net.HttpURLConnection;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * @author CHY
@@ -23,8 +21,9 @@ import java.util.TreeSet;
 @Slf4j
 public class SignMD5Utils {
 
-    public static final String appId = "20230110";
-    public static final String secret = "secTest";
+    public static final String descSecret = "descPostToShiroTestYangLongGui";
+    public static final String secret = "secTest"; //签名的密钥
+
 
     public static void main(String[] args) throws Exception {
         //参数签名测试例子
@@ -32,13 +31,17 @@ public class SignMD5Utils {
         long nowTimestamp = Instant.now().getEpochSecond();
         signMap.put("data","数据");
         signMap.put("sex","性别");
+        signMap.put("userName","test");
         String url = "http://localhost:8080";
         String restUrl="/userAndRole/jemTest1";
         String sign = getSignMd5(restUrl,SignMD5Utils.secret,nowTimestamp);
         System.out.println("得到签名sign: " + sign);
         System.out.println("生成的url: " + url);
-        String resp = PostDemo.formUpload(url,restUrl,signMap,null,"",sign,nowTimestamp);
+        String resp=doPOst(url,restUrl,signMap,sign,nowTimestamp);
+       // String resp = PostDemo.formUpload(url,restUrl,signMap,null,"",sign,nowTimestamp);
         System.out.println(resp);
+
+
     }
 
 
@@ -128,6 +131,61 @@ public class SignMD5Utils {
         return sign.toString();
     }
 
+
+    /**
+     * multipart/form-data格式的上传方式 请求成功
+     * @return 返回response数据
+     */
+    private static String doPOst(String urlStr,String restUrl, Map<String, String> textMap, String sign,long nowTimestamp) throws Exception {
+        HttpURLConnection conn = null;
+        OutputStream out = null;
+        InputStream in = null;
+        BufferedReader reader = null;
+        StringBuffer strBufReturn = new StringBuffer();
+        try {
+
+            URL url = new URL(urlStr+restUrl);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(30000);
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            conn.setUseCaches(false);
+            conn.setRequestProperty("sign",sign);
+            conn.setRequestProperty("timestamp", String.valueOf(nowTimestamp));
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Connection", "Keep-Alive");
+            conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
+            out = new DataOutputStream(conn.getOutputStream());
+            String content = DES3Util.encrypt(JSONObject.toJSONString(textMap), descSecret);
+            out.write(content.getBytes(StandardCharsets.UTF_8));
+            out.flush();
+            out.close();
+            // 读取返回数据
+            reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                strBufReturn.append(line).append("\n");
+            }
+            reader.close();
+        } catch (Exception e) {
+            throw new Exception("发送POST请求出错。" + urlStr+e.getMessage());
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+            if (out != null) {
+                out.close();
+            }
+            if (in != null) {
+                in.close();
+            }
+            if (reader != null) {
+                reader.close();
+            }
+        }
+        return strBufReturn.toString();
+    }
     /**
      * java发送http请求
      */
