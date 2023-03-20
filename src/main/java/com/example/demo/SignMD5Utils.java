@@ -13,11 +13,6 @@ import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.*;
 
-/**
- * @author CHY
- * @date 2021/3/18 9:25
- * @description MD5加密工具类
- */
 @Slf4j
 public class SignMD5Utils {
 
@@ -37,8 +32,8 @@ public class SignMD5Utils {
         String sign = getSignMd5(restUrl,SignMD5Utils.secret,nowTimestamp);
         System.out.println("得到签名sign: " + sign);
         System.out.println("生成的url: " + url);
-        String resp=doPOst(url,restUrl,signMap,sign,nowTimestamp);
-       // String resp = PostDemo.formUpload(url,restUrl,signMap,null,"",sign,nowTimestamp);
+        //String resp=doPOst(url,restUrl,signMap,sign,nowTimestamp);
+        String resp = PostDemo.formUpload(url,restUrl,signMap,sign,nowTimestamp);
         System.out.println(resp);
 
 
@@ -81,7 +76,7 @@ public class SignMD5Utils {
      * @param secret 分配的密钥secret
      * @return sign 签名
      */
-    private static String getSign(String url,Map<String, String> params, String secret) {
+    public static String getSign(String url,Map<String, String> params, String secret) {
         StringBuilder sb = new StringBuilder();
         // 先对请求参数去重并排序
         Set<String> keySet = params.keySet();
