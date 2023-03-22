@@ -30,11 +30,11 @@ public class PostDemo {
 
         String result;
     //    send("http://localhost:8080/userAndRole/jemTest1",map);
-//        result=doPost("http://localhost:8080","/userAndRole/jemTest1",map) ;
+//        result=doPost("http://localhost:8080","/userAndRole/jemTest2",map) ;
 //        System.out.println(result);
         result=doGet("http://localhost:8080","/userAndRole/jemTest2",map) ;
         System.out.println(result);
-//        result=postEncryptJson("http://localhost:8080","/userAndRole/queryUserInfo",map1);
+//        result=postEncryptJson("http://localhost:8080","/userAndRole/jemTest",map);
 //        System.out.println(result);
     }
 
